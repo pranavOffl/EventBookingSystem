@@ -60,7 +60,7 @@ uv run alembic upgrade head
 
 ```bash
 # Development mode
-uv run uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+uv run uvicorn main:app --reload
 ```
 
 API available at:
