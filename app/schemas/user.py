@@ -10,12 +10,12 @@ class UserSignUpRole(str, Enum):
 
 # Request Schemas
 class UserRequestBase(SQLModel):
-    email: EmailStr
-    password: str = Field(min_length=8, max_length=64)
+    email: EmailStr = Field(examples=["user@example.com"])
+    password: str = Field(min_length=8, max_length=64, examples=["password123"])
 
 class UserSignUpRequest(UserRequestBase):
-    confirm_password: str = Field(min_length=8, max_length=64)
-    role: UserSignUpRole = UserSignUpRole.attendee
+    confirm_password: str = Field(min_length=8, max_length=64, examples=["password123"])
+    role: UserSignUpRole = Field(default=UserSignUpRole.attendee, examples=["attendee"])
 
 class UserEmailUpdateRequest(BaseModel):
     email: EmailStr

@@ -7,11 +7,11 @@ from typing import List
 
 # Request schemas
 class AdminRequestBase(BaseModel):
-    email: EmailStr
-    password: str = Field(min_length=8, max_length=64)
+    email: EmailStr = Field(examples=["admin@example.com"])
+    password: str = Field(min_length=8, max_length=64, examples=["password123"])
 
 class AdminSignUpRequest(AdminRequestBase):
-    confirm_password: str = Field(min_length=8, max_length=64)
+    confirm_password: str = Field(min_length=8, max_length=64, examples=["password123"])
 
 class AdminEmailUpdateRequest(BaseModel):
     email: EmailStr

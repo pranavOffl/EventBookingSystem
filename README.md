@@ -1,6 +1,6 @@
 # Event Booking System
 
-A robust FastAPI backend service for managing events, bookings, and user roles with PostgreSQL (Async), Redis caching, and JWT authentication.
+An asynchronous Event Booking System built with FastAPI, designed to manage secure and scalable event reservations. It features a comprehensive Role-Based Access Control (RBAC) architecture, ensuring distinct and secure workflows for Admins, Organizers, and Attendees.
 
 ## Prerequisites
 
