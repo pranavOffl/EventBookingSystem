@@ -42,6 +42,7 @@ dependencies = [
     "typing-extensions>=4.15.0",
     "typing-inspection>=0.4.2",
     "uvicorn>=0.40.0",
+    "slowapi>=0.1.9",
 ]
 
 [dependency-groups]

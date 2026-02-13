@@ -1,12 +1,12 @@
 import jwt, uuid, logging
 from app.core.config import settings
 from passlib.context import CryptContext
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 def create_access_token(user_data: dict , expiry:timedelta =None, refresh: bool= False) -> str:
     payload = {
         'user':user_data,
-        'exp': datetime.now() + (expiry if expiry is not None else timedelta(minutes=60)),
+        'exp': datetime.now(timezone.utc) + (expiry if expiry is not None else timedelta(minutes=60)),
         'jti': str(uuid.uuid4()),
         'refresh' : refresh
     }
@@ -26,8 +26,8 @@ def decode_token(token: str) -> dict:
             key=settings.JWT_SECRET,
             algorithms=[settings.JWT_ALGORITHM]
         )
-
         return token_data
+        
     except jwt.PyJWTError as jwte:
         logging.exception(jwte)
         return None

@@ -11,26 +11,26 @@ class UserSignUpRole(str, Enum):
 # Request Schemas
 class UserRequestBase(SQLModel):
     email: EmailStr
-    password: str
+    password: str = Field(min_length=8, max_length=64)
 
 class UserSignUpRequest(UserRequestBase):
-    confirm_password: str
+    confirm_password: str = Field(min_length=8, max_length=64)
     role: UserSignUpRole = UserSignUpRole.attendee
 
 class UserEmailUpdateRequest(BaseModel):
     email: EmailStr
 
 class UserPasswordUpdateRequest(BaseModel):
-    password: str
-    confirm_password: str
+    password: str = Field(min_length=8, max_length=64)
+    confirm_password: str = Field(min_length=8, max_length=64)
 
 class UserRoleUpdateRequest(BaseModel):
     role: UserSignUpRole
 
 class UserUpdate(BaseModel):
     email: EmailStr | None = None
-    password: str | None = None
-    confirm_password: str | None = None
+    password: str | None = Field(default=None, min_length=8, max_length=64)
+    confirm_password: str | None = Field(default=None, min_length=8, max_length=64)
     role: str | None = None
 
 # Response Schemas

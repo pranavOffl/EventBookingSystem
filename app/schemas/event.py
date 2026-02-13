@@ -3,15 +3,15 @@ from typing import Optional
 from sqlmodel import SQLModel
 from uuid import UUID
 
-from pydantic import field_validator
+from pydantic import field_validator, Field
 
 # Request Schemas
 class EventBase(SQLModel):
-    title: str
-    description: str
+    title: str = Field(min_length=3, max_length=150)
+    description: str = Field(max_length=1000)
     date: datetime
-    location: str
-    capacity: int
+    location: str = Field(min_length=3, max_length=200)
+    capacity: int = Field(gt=0)
 
 class EventCreateRequest(EventBase):
     @field_validator("date")
@@ -34,11 +34,11 @@ class EventCreateRequest(EventBase):
         return value
 
 class EventUpdateRequest(SQLModel):
-    title: Optional[str] = None
-    description: Optional[str] = None
+    title: Optional[str] = Field(default=None, min_length=3, max_length=150)
+    description: Optional[str] = Field(default=None, max_length=1000)
     date: Optional[datetime] = None
-    location: Optional[str] = None
-    capacity: Optional[int] = None
+    location: Optional[str] = Field(default=None, min_length=3, max_length=200)
+    capacity: Optional[int] = Field(default=None, gt=0)
 
     @field_validator("date")
     def validate_date(cls, value):

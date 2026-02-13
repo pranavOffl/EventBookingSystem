@@ -11,11 +11,12 @@ class EventService:
     async def get_event_by_id(self, session: AsyncSession, event_id: UUID) -> Optional[Event]:
         return await session.get(Event, event_id)
         
-    async def get_all_events(self, session: AsyncSession, upcoming_only: bool = True) -> List[Event]:
+    async def get_all_events(self, session: AsyncSession, skip: int = 0, limit: int = 20, upcoming_only: bool = True) -> List[Event]:
         statement = select(Event)
         if upcoming_only:
-            from datetime import datetime
-            statement = statement.where(Event.date > datetime.now())
+            from datetime import datetime, timezone
+            statement = statement.where(Event.date > datetime.now(timezone.utc))
+        statement = statement.offset(skip).limit(limit)
         result = await session.exec(statement)
         return result.all()
     

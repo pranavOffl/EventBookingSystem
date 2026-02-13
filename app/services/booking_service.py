@@ -1,10 +1,9 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import List
 from uuid import UUID
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 from fastapi import HTTPException, status
-from sqlalchemy.orm import selectinload
 
 from app.db.models.booking import Booking
 from app.db.models.event import Event
@@ -12,30 +11,41 @@ from app.db.models.user import User
 
 class BookingService:
     async def create_booking(self, session: AsyncSession, user_id: UUID, event_id: UUID) -> Booking:
-        # 1. Fetch Event
-        event = await session.get(Event, event_id)
+        # 2. Check Event Date & Capacity with Row Lock for Concurrency
+        # We re-fetch the event with a lock to ensure accurate booked_seats count
+        # This prevents race conditions where multiple users book the last seat simultaneously.
+        statement = select(Event).where(Event.id == event_id).with_for_update()
+        result = await session.exec(statement)
+        event = result.one_or_none()
+        
         if not event:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found")
+             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found")
 
-        # 2. Check Event Date
         if event.date <= datetime.now(event.date.tzinfo):
              raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot book past events")
-             
-        # 3. Check Capacity
-        # Lock row for update to prevent race condition? Or check simply.
-        # Simple check for now.
+
         if event.booked_seats >= event.capacity:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Event is fully booked")
 
-        # 4. Check Existing Booking
-        statement = select(Booking).where(Booking.user_id == user_id, Booking.event_id == event_id, Booking.status == "confirmed")
-        existing_booking = await session.exec(statement)
-        if existing_booking.first():
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="User already booked this event")
+        # 4. Check for ANY Existing Booking (Active or Cancelled)
+        statement = select(Booking).where(Booking.user_id == user_id, Booking.event_id == event_id)
+        existing_booking = (await session.exec(statement)).first()
+        
+        if existing_booking:
+            if existing_booking.status == "confirmed":
+                raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="User already booked this event")
+            
+            # If cancelled, reactivate it
+            existing_booking.status = "confirmed"
+            from datetime import timezone
+            existing_booking.booking_date = datetime.now(timezone.utc) # Update timestamp to UTC
+            new_booking = existing_booking
+            session.add(new_booking)
 
-        # 5. Create Booking
-        new_booking = Booking(user_id=user_id, event_id=event_id, status="confirmed")
-        session.add(new_booking)
+        else:
+            # 5. Create New Booking
+            new_booking = Booking(user_id=user_id, event_id=event_id, status="confirmed")
+            session.add(new_booking)
         
         # 6. Update Event Seats
         event.booked_seats += 1

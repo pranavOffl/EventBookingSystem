@@ -9,13 +9,13 @@ class Settings(BaseSettings):
     
     JWT_SECRET: str
     JWT_ALGORITHM: str
-    JWT_EXPIRY: int = 3600
+    JWT_EXPIRY: int
     
-    REDIS_HOST: str = "localhost"
-    REDIS_PORT: int = 6379
+    REDIS_HOST: str
+    REDIS_PORT: int
     
-    ACCESS_TOKEN_EXPIRY: int = 30 # 30 minutes
-    REFRESH_TOKEN_EXPIRY: int = 60 * 24 * 7 # 7 days
+    ACCESS_TOKEN_EXPIRY: int 
+    REFRESH_TOKEN_EXPIRY: int
     
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
     

@@ -1,5 +1,5 @@
 from uuid import UUID
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from app.schemas.user import UserResponseBase
 from app.schemas.booking import BookingRead
 from app.schemas.event import EventResponseBase
@@ -8,22 +8,22 @@ from typing import List
 # Request schemas
 class AdminRequestBase(BaseModel):
     email: EmailStr
-    password: str
+    password: str = Field(min_length=8, max_length=64)
 
 class AdminSignUpRequest(AdminRequestBase):
-    confirm_password: str
+    confirm_password: str = Field(min_length=8, max_length=64)
 
 class AdminEmailUpdateRequest(BaseModel):
     email: EmailStr
 
 class AdminPasswordUpdateRequest(BaseModel):
-    password: str
-    confirm_password: str
+    password: str = Field(min_length=8, max_length=64)
+    confirm_password: str = Field(min_length=8, max_length=64)
 
 class AdminUpdate(BaseModel):
     email: EmailStr | None = None
-    password: str | None = None
-    confirm_password: str | None = None
+    password: str | None = Field(default=None, min_length=8, max_length=64)
+    confirm_password: str | None = Field(default=None, min_length=8, max_length=64)
 
 # Response schemas
 class AdminResponseBase(BaseModel):

@@ -1,6 +1,8 @@
-from typing import List
+from typing import List, Optional
+from fastapi import Query
 from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
+from app.core.rate_limiter import limiter
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.db.async_session import get_db
@@ -20,9 +22,14 @@ router = APIRouter()
 role_checker = RoleChecker([Role.ORGANIZER.value, Role.ADMIN.value])
 
 @router.get("/", response_model=List[EventResponseBase], status_code=status.HTTP_200_OK)
-async def list_events(session: AsyncSession = Depends(get_db), upcoming_only: bool = True):
-    """List all events (Public). Defaults to upcoming only."""
-    return await event_service.get_all_events(session, upcoming_only)
+async def list_events(
+    session: AsyncSession = Depends(get_db), 
+    skip: int = Query(0, ge=0), 
+    limit: int = Query(20, ge=1, le=100), 
+    upcoming_only: bool = True
+):
+    """List all events (Public). Defaults to upcoming only. Supports pagination."""
+    return await event_service.get_all_events(session, skip, limit, upcoming_only)
 
 @router.get("/{event_id}", response_model=EventResponseBase, status_code=status.HTTP_200_OK)
 async def get_event(event_id: UUID, session: AsyncSession = Depends(get_db)):
@@ -33,7 +40,8 @@ async def get_event(event_id: UUID, session: AsyncSession = Depends(get_db)):
     return event
 
 @router.post("/", response_model=EventCreateResponse, status_code=status.HTTP_201_CREATED)
-async def create_event(event_data: EventCreateRequest, current_user: User = Depends(get_current_user), _: bool = Depends(role_checker), session: AsyncSession = Depends(get_db)):
+@limiter.limit("5/minute")
+async def create_event(request: Request, event_data: EventCreateRequest, current_user: User = Depends(get_current_user), _: bool = Depends(role_checker), session: AsyncSession = Depends(get_db)):
     """Create a new event (Organizer or Admin only)."""
         
     new_event = await event_service.create_event(session, event_data, current_user)
@@ -44,7 +52,8 @@ async def create_event(event_data: EventCreateRequest, current_user: User = Depe
     )
 
 @router.patch("/{event_id}", response_model=EventUpdateResponse, status_code=status.HTTP_200_OK)
-async def update_event(event_id: UUID, update_data: EventUpdateRequest, current_user: User = Depends(get_current_user), _: bool = Depends(role_checker), session: AsyncSession = Depends(get_db)):
+@limiter.limit("10/minute")
+async def update_event(request: Request, event_id: UUID, update_data: EventUpdateRequest, current_user: User = Depends(get_current_user), _: bool = Depends(role_checker), session: AsyncSession = Depends(get_db)):
     """Update event (Owner or Admin only)."""
     
     event = await event_service.get_event_by_id(session, event_id)
@@ -62,7 +71,8 @@ async def update_event(event_id: UUID, update_data: EventUpdateRequest, current_
     )
 
 @router.delete("/{event_id}", response_model=EventMessageResponse, status_code=status.HTTP_200_OK)
-async def delete_event(event_id: UUID, current_user: User = Depends(get_current_user), _: bool = Depends(role_checker), session: AsyncSession = Depends(get_db)):
+@limiter.limit("5/minute")
+async def delete_event(request: Request, event_id: UUID, current_user: User = Depends(get_current_user), _: bool = Depends(role_checker), session: AsyncSession = Depends(get_db)):
     """Delete event (Owner or Admin only)."""
     
     event = await event_service.get_event_by_id(session, event_id)

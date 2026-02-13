@@ -4,7 +4,8 @@ from app.db.async_session import get_db
 from app.core.redis import add_jti_to_blocklist
 from app.services.admin_service import admin_service
 from sqlmodel.ext.asyncio.session import AsyncSession
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
+from app.core.rate_limiter import limiter
 from app.core.utils import create_access_token
 from app.schemas.admin import (
     AdminRequestBase,
@@ -20,7 +21,8 @@ from app.core.security import access_token_bearer, refresh_token_bearer
 router = APIRouter()
 
 @router.post("/signup", response_model=AdminSignUpResponse, status_code=status.HTTP_201_CREATED)
-async def create_admin(admin_data: AdminSignUpRequest, session: AsyncSession = Depends(get_db)):
+@limiter.limit("5/minute")
+async def create_admin(request: Request, admin_data: AdminSignUpRequest, session: AsyncSession = Depends(get_db)):
     """Create a new super admin user."""
 
     email = admin_data.email
@@ -50,7 +52,8 @@ async def create_admin(admin_data: AdminSignUpRequest, session: AsyncSession = D
     )
 
 @router.post("/login", response_model=AdminLoginResponse, status_code=status.HTTP_200_OK)
-async def login_admin(admin_data: AdminRequestBase, session: AsyncSession = Depends(get_db)):
+@limiter.limit("5/minute")
+async def login_admin(request: Request, admin_data: AdminRequestBase, session: AsyncSession = Depends(get_db)):
     """Login admin user."""
 
     email = admin_data.email

@@ -1,5 +1,6 @@
 from datetime import timedelta
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
+from app.core.rate_limiter import limiter
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.db.async_session import get_db
@@ -22,7 +23,8 @@ from app.schemas.user import (
 router = APIRouter()
 
 @router.post("/signup", response_model=UserSignUpResponse, status_code=status.HTTP_201_CREATED)
-async def create_user(user_data: UserSignUpRequest, session: AsyncSession = Depends(get_db)):
+@limiter.limit("5/minute")
+async def create_user(request: Request, user_data: UserSignUpRequest, session: AsyncSession = Depends(get_db)):
     """Create a new user (Attendee or Organizer)."""
     
     email = user_data.email
@@ -52,7 +54,8 @@ async def create_user(user_data: UserSignUpRequest, session: AsyncSession = Depe
     )
 
 @router.post("/login", response_model=UserLoginResponse, status_code=status.HTTP_200_OK)
-async def login_user(user_data: UserRequestBase, session: AsyncSession = Depends(get_db)):
+@limiter.limit("5/minute")
+async def login_user(request: Request, user_data: UserRequestBase, session: AsyncSession = Depends(get_db)):
     """Login user."""
     
     email = user_data.email
