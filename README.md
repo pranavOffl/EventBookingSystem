@@ -63,6 +63,21 @@ uv run alembic upgrade head
 uv run uvicorn main:app --reload
 ```
 
+## Docker Deployment
+
+To build and run the project using Docker:
+
+```bash
+# 1. Build the Docker image from the current directory
+docker build -t event-booking-system .
+
+# 2. Run the container
+# --network host: allows container to access local DB/Redis (Linux only)
+# --env-file .env: loads environment variables from your local file
+docker run --network host --env-file .env event-booking-system
+```
+
+
 API available at:
 - **API**: http://localhost:8000
 - **Swagger Docs**: http://localhost:8000/api/v1/docs
