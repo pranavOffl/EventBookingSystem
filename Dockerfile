@@ -28,5 +28,6 @@ ENV PATH="/app/.venv/bin:$PATH"
 # Reset the entrypoint, don't invoke `uv`
 ENTRYPOINT []
 
-# Run the FastAPI application by default
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Make the script executable and run it
+RUN chmod +x /app/start.sh
+CMD ["/app/start.sh"]
