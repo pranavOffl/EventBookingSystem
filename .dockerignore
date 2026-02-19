@@ -1,0 +1,18 @@
+
+# Python and Dependencies
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+.env
+.env.local
+.git/
+.gitignore
+.mypy_cache/
+.pytest_cache/
+htmlcov/
+dist/
+build/
+site/
+.DS_Store
