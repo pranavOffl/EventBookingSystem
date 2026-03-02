@@ -57,7 +57,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/event-booking:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/event-booking-system:latest
           
       - name: Deploy to AWS EC2
         uses: appleboy/ssh-action@v1.0.3
@@ -70,7 +70,7 @@ jobs:
             echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
             
             # 2. Pull the newly pushed image
-            docker pull ${{ secrets.DOCKER_USERNAME }}/event-booking:latest
+            docker pull ${{ secrets.DOCKER_USERNAME }}/event-booking-system:latest
             
             # 3. Stop and remove the old container
             docker stop event-booking-app || true
@@ -82,7 +82,7 @@ jobs:
               --network host \
               --restart unless-stopped \
               --env-file ~/.env \
-              ${{ secrets.DOCKER_USERNAME }}/event-booking:latest
+              ${{ secrets.DOCKER_USERNAME }}/event-booking-system:latest
             
             # 5. Clean up old unused images on the EC2 to save disk space
             docker image prune -a -f
