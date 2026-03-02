@@ -25,12 +25,18 @@ class User(SQLModel, table=True):
     )
     email: str = Field(unique=True, index=True)
     password: str
+
     role: Role = Field(
-        sa_column=Column(SAEnum(Role, name="role_enum", values_callable=lambda obj: [e.value for e in obj]), nullable=False, default=Role.ATTENDEE),
-        default=Role.ATTENDEE
+        sa_column=Column(
+            SAEnum(
+                Role,
+                name="role_enum",
+                values_callable=lambda obj: [e.value for e in obj],
+            ),
+            nullable=False,
+        ),
+        default=Role.ATTENDEE,
     )
-    
-    events: List["Event"] = Relationship(back_populates="organizer")
-    
-    # Relationship to events booked by this user
+
+    events: List["Event"] = Relationship(back_populates="organizer", cascade_delete=True)
     booked_events: List["Event"] = Relationship(back_populates="attendees", link_model=Booking)

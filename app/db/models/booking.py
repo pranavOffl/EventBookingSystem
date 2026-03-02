@@ -19,7 +19,7 @@ class Booking(SQLModel, table=True):
             default=uuid.uuid4,
         )
     )
-    user_id: uuid.UUID = Field(foreign_key="user.id", nullable=False)
-    event_id: uuid.UUID = Field(foreign_key="event.id", nullable=False)
+    user_id: uuid.UUID = Field(foreign_key="user.id", ondelete="CASCADE", nullable=False)
+    event_id: uuid.UUID = Field(foreign_key="event.id", ondelete="CASCADE", nullable=False)
     booking_date: datetime = Field(sa_column=Column(pg.TIMESTAMP(timezone=True), nullable=False, default=datetime.utcnow))
     status: str = Field(default="confirmed") # confirmed, cancelled

@@ -17,7 +17,7 @@ class UserService:
         return user is not None
     
     async def create_user(self, session: AsyncSession, user_data: UserSignUpRequest) -> User:
-        password_hash = generate_password_hash(user_data.password)
+        password_hash = await generate_password_hash(user_data.password)
         
         role = user_data.role.value if hasattr(user_data.role, "value") else user_data.role
         
@@ -37,7 +37,7 @@ class UserService:
 
         if not user:
             return None
-        if not verify_password(password, user.password):
+        if not await verify_password(password, user.password):
             return None
             
         return user
@@ -46,7 +46,7 @@ class UserService:
         if update_data.email is not None:
             user.email = update_data.email
         if update_data.password is not None:
-            password_hash = generate_password_hash(update_data.password)
+            password_hash = await generate_password_hash(update_data.password)
             user.password = password_hash
         if update_data.role is not None:
              # Handle both Enum and string if passed manually

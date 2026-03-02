@@ -42,9 +42,10 @@ passwd_context = CryptContext(
 )
 
 
-def generate_password_hash(password: str) -> str:
-    hash = passwd_context.hash(password)
-    return hash
+import asyncio
 
-def verify_password(password: str, hash: str) -> bool:
-    return passwd_context.verify(password, hash)
+async def generate_password_hash(password: str) -> str:
+    return await asyncio.to_thread(passwd_context.hash, password)
+
+async def verify_password(password: str, hash: str) -> bool:
+    return await asyncio.to_thread(passwd_context.verify, password, hash)

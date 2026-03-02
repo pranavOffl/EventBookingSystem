@@ -78,8 +78,11 @@ class BookingService:
         booking.status = "cancelled"
         session.add(booking)
         
-        # Update Event Seats
-        event = await session.get(Event, booking.event_id)
+        # Update Event Seats with a row lock to prevent race conditions during simultaneous cancellations
+        event_statement = select(Event).where(Event.id == booking.event_id).with_for_update()
+        event_result = await session.exec(event_statement)
+        event = event_result.one_or_none()
+        
         if event:
             event.booked_seats = max(0, event.booked_seats - 1)
             session.add(event)

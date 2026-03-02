@@ -1,7 +1,9 @@
 from typing import List, Optional
+from sqlalchemy import or_
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 from uuid import UUID
+from datetime import datetime
 from fastapi import HTTPException, status
 from app.db.models.event import Event
 from app.db.models.user import User
@@ -14,9 +16,38 @@ class EventService:
     async def get_all_events(self, session: AsyncSession, skip: int = 0, limit: int = 20, upcoming_only: bool = True) -> List[Event]:
         statement = select(Event)
         if upcoming_only:
-            from datetime import datetime, timezone
-            statement = statement.where(Event.date > datetime.now(timezone.utc))
+            # Use naive UTC time for comparison because DB stores naive timestamps
+            statement = statement.where(Event.date > datetime.utcnow())
         statement = statement.offset(skip).limit(limit)
+        result = await session.exec(statement)
+        return result.all()
+
+    async def search_events(self, session: AsyncSession, query: Optional[str] = None, location: Optional[str] = None, date_start: Optional[datetime] = None, date_end: Optional[datetime] = None, upcoming_only: bool = True, limit: int = 20) -> List[Event]:
+        statement = select(Event)
+        
+        # Default to upcoming only unless specific dates are requested
+        if upcoming_only and not date_start and not date_end:
+            statement = statement.where(Event.date > datetime.utcnow())
+            
+        if date_start:
+            statement = statement.where(Event.date >= date_start)
+            
+        if date_end:
+             statement = statement.where(Event.date <= date_end)
+             
+        if query:
+            statement = statement.where(
+                or_(
+                    Event.title.ilike(f"%{query}%"),
+                    Event.description.ilike(f"%{query}%")
+                )
+            )
+            
+        if location:
+            statement = statement.where(Event.location.ilike(f"%{location}%"))
+            
+        statement = statement.limit(limit)
+        statement = statement.order_by(Event.date)
         result = await session.exec(statement)
         return result.all()
     

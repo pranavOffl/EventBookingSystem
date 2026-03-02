@@ -22,12 +22,7 @@ router = APIRouter()
 role_checker = RoleChecker([Role.ORGANIZER.value, Role.ADMIN.value])
 
 @router.get("/", response_model=List[EventResponseBase], status_code=status.HTTP_200_OK)
-async def list_events(
-    session: AsyncSession = Depends(get_db), 
-    skip: int = Query(0, ge=0), 
-    limit: int = Query(20, ge=1, le=100), 
-    upcoming_only: bool = True
-):
+async def list_events(session: AsyncSession = Depends(get_db), skip: int = Query(0, ge=0), limit: int = Query(20, ge=1, le=100), upcoming_only: bool = True):
     """List all events (Public). Defaults to upcoming only. Supports pagination."""
     return await event_service.get_all_events(session, skip, limit, upcoming_only)
 

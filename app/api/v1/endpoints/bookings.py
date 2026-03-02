@@ -21,7 +21,7 @@ role_checker_organizer = RoleChecker([Role.ORGANIZER.value, Role.ADMIN.value])
 role_checker_attendee = RoleChecker([Role.ATTENDEE.value, Role.ADMIN.value])
 
 @router.post("/", response_model=BookingMessageResponse, status_code=status.HTTP_201_CREATED)
-@limiter.limit("5/minute")
+@limiter.limit("2/minute")
 async def create_booking(request: Request, booking_data: BookingCreate, current_user: User = Depends(get_current_user), _: bool = Depends(role_checker_attendee), session: AsyncSession = Depends(get_db)):
     """Book a ticket for an event"""
     booking = await booking_service.create_booking(session, current_user.id, booking_data.event_id)
