@@ -1,0 +1,33 @@
+language: "en-US"
+early_access: false
+reviews:
+  profile: "conventional"
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: true
+  review_status: true
+  collapse_walkthrough: false
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - "main"
+      - "master"
+  path_instructions:
+    - path: "**/*.py"
+      instructions: |
+        - Follow PEP 8 style guidelines for Python code.
+        - Ensure standard type hints are used across FastAPI endpoints and services.
+        - Check that Pydantic models are appropriately used for request body validation and response serialization.
+        - Verify exception handling throughout the asynchronous routes.
+        - Emphasize secure practices (e.g., proper JWT token verification, password hashing checks).
+        - Ensure complex logic within `app/services/` is properly modularized.
+  path_filters:
+    - "!*.lock"
+    - "!alembic/versions/**" # Ignore generated migration files
+    - "!uv.lock"
+    - "!.mypy_cache/**"
+    - "!.pytest_cache/**"
+    - "!__pycache__/**"
+chat:
+  auto_reply: true
